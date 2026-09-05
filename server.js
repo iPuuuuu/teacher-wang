@@ -34,4 +34,4 @@ const server=http.createServer(async (req,res)=>{
     fs.readFile(p,(e,d)=>e?send(res,404,'Not found','text/plain'):send(res,200,d,mime[path.extname(p)]||'text/plain; charset=utf-8'));
   }catch(e){send(res,500,{error:e.message});}
 });
-server.listen(process.env.PORT||4173,'127.0.0.1',()=>console.log(`陪你学已启动：http://127.0.0.1:${process.env.PORT||4173}`));
+server.listen(process.env.PORT||4173,'127.0.0.1',()=>console.log(`teacher-wang 已启动：http://127.0.0.1:${process.env.PORT||4173}`));
