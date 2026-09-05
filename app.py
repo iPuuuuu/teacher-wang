@@ -46,6 +46,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == '/api/sessions':
             x=self.read_json(); db=read_db(); s={'id':str(uuid.uuid4()),'title':x.get('title','Python 基础'),'goal':x.get('goal','Python 基础'),'steps':x.get('steps',DEFAULT_STEPS),'step':0,'messages':x.get('messages',[]),'assessments':[],'createdAt':now(),'updatedAt':now()}; db['sessions'].insert(0,s); write_db(db); return self.json(201,s)
         if self.path == '/api/analyze': return self.analyze(self.read_json())
+        if self.path == '/api/plan': return self.plan(self.read_json())
         self.json(404, {'error':'not found'})
     def do_PATCH(self):
         if not self.path.startswith('/api/sessions/'): return self.json(404, {'error':'not found'})
@@ -54,14 +55,25 @@ class Handler(BaseHTTPRequestHandler):
         s.update(self.read_json()); s['updatedAt']=now(); write_db(db); self.json(200,s)
     def analyze(self, x):
         key=os.getenv('OPENAI_API_KEY'); current=(x.get('steps') or DEFAULT_STEPS)[x.get('step',0)]
-        if not key: return self.json(200, {'reply':f'我先根据你的回答来判断。关于「{current}」，我会观察你是否能解释概念、说明原因并举例。你的回答已记录；如果不确定，可以继续用自己的话说说，我会换一种方式讲解。','mastery':0.5,'advance':False,'diagnosis':'演示模式：未配置模型密钥','nextStrategy':'补充例子并进行一次迁移练习'})
-        prompt=f'''你是私人学习导师。目标：{x.get('goal')}\n路径：{json.dumps(x.get('steps'),ensure_ascii=False)}\n当前节点：{current}\n对话：{json.dumps(x.get('messages',[]),ensure_ascii=False)}\n最新回答：{x.get('answer')}\n只返回JSON：{{"reply":"中文反馈和下一步问题","mastery":0到1,"advance":true或false,"diagnosis":"具体理解点和误区","nextStrategy":"下一步策略"}}。只有真正理解并能解释或应用时 advance 才为 true。'''
+        if not key: return self.json(200, {'reply':f'我们继续判断「{current}」。请再举一个实际例子。','mastery':0.5,'advance':False,'diagnosis':'演示模式：未配置模型密钥','nextStrategy':'补充例子并进行迁移练习','nextStep':current,'nextQuestion':f'请举例说明：{current}怎么应用？'})
+        prompt=f'''你是私人学习导师。目标：{x.get('goal')}\n当前路径：{json.dumps(x.get('steps'),ensure_ascii=False)}\n当前节点：{current}\n对话：{json.dumps(x.get('messages',[]),ensure_ascii=False)}\n最新回答：{x.get('answer')}\n只返回JSON：{{"reply":"中文反馈","mastery":0到1,"advance":true或false,"diagnosis":"具体理解点和误区","nextStrategy":"教学策略","nextStep":"下一节点，可复习或插入新节点","nextSteps":["后续路径"],"nextQuestion":"下一道具体问题"}}。根据理解情况动态调整，不要机械推进。只有真正理解才 advance=true。'''
         payload=json.dumps({'model':os.getenv('OPENAI_MODEL','gpt-4o-mini'),'temperature':.3,'response_format':{'type':'json_object'},'messages':[{'role':'system','content':'你是学习评估引擎，严格输出JSON。'},{'role':'user','content':prompt}]}).encode()
         req=Request(os.getenv('OPENAI_BASE_URL','https://api.openai.com/v1')+'/chat/completions',data=payload,headers={'Content-Type':'application/json','Authorization':'Bearer '+key})
         try:
             with urlopen(req, timeout=60) as r: out=json.loads(json.loads(r.read())['choices'][0]['message']['content'])
             self.json(200,out)
         except (HTTPError, Exception) as e: self.json(502, {'error':f'模型请求失败: {e}'})
+
+    def plan(self, x):
+        key=os.getenv('OPENAI_API_KEY')
+        if not key: return self.json(200, {'steps': DEFAULT_STEPS, 'step': 0, 'reply': f'我们先从「{DEFAULT_STEPS[0]}」开始。请用自己的话解释并举例。'})
+        prompt=f'''你是课程设计导师。用户目标：{x.get('goal')}。生成个性化学习路径。只返回JSON：{{"steps":["节点"],"step":0,"reply":"首条中文教学消息和问题"}}。至少4个节点。'''
+        payload=json.dumps({'model':os.getenv('OPENAI_MODEL','gpt-4o-mini'),'temperature':.4,'response_format':{'type':'json_object'},'messages':[{'role':'system','content':'严格输出JSON。'},{'role':'user','content':prompt}]}).encode()
+        req=Request(os.getenv('OPENAI_BASE_URL','https://api.openai.com/v1')+'/chat/completions',data=payload,headers={'Content-Type':'application/json','Authorization':'Bearer '+key})
+        try:
+            with urlopen(req, timeout=60) as r: out=json.loads(json.loads(r.read())['choices'][0]['message']['content'])
+            self.json(200,out)
+        except Exception as e: self.json(502, {'error':f'模型请求失败: {e}'})
 
 if __name__ == '__main__':
     port=int(os.getenv('PORT','4173')); print(f'teacher-wang Python 服务已启动：http://127.0.0.1:{port}', flush=True); ThreadingHTTPServer(('127.0.0.1',port),Handler).serve_forever()
