@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>teacher-wang · AI 学习导师</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">✦</div><div><strong>teacher-wang</strong><span>AI 学习导师</span></div></div>
+      <button class="new-btn" id="newBtn">＋ 开始一个新主题</button>
+      <div class="side-label">最近学习</div>
+      <button class="topic active"><span class="dot green"></span><div><b>Python 基础</b><small>上次：函数与参数</small></div><span class="chev">›</span></button>
+      <button class="topic"><span class="dot purple"></span><div><b>产品思维入门</b><small>还未开始</small></div><span class="chev">›</span></button>
+      <div class="sidebar-bottom"><div class="streak">🔥 <b>连续学习 3 天</b><small>今天也来一点点</small></div><div class="user"><div class="avatar">你</div><span>我的学习空间</span><span class="more">•••</span></div></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div><span class="eyebrow">PERSONAL LEARNING SPACE</span><h1 id="pageTitle">Python 基础</h1></div><div class="top-actions"><button class="icon-btn">⌕</button><button class="icon-btn">⚙</button></div></header>
+      <section class="content" id="welcomeView">
+        <div class="hero"><div class="hero-kicker">今天，从一个问题开始</div><h2>不用规划，<em>先学一点。</em></h2><p>告诉我你想学什么，或者把手边的教材交给我。我会帮你拆成一步一步的对话式学习。</p></div>
+        <div class="input-card"><div class="input-head"><span class="spark">✦</span><span>我想学……</span></div><textarea id="goalInput" placeholder="例如：我想看懂这份 Redis 教材，或者：我想入门机器学习"></textarea><div class="input-foot"><label class="upload"><input type="file" id="fileInput" accept=".pdf,.ppt,.pptx,.md,.txt"/>⌑ 上传教材 / PPT</label><button class="start-btn" id="startBtn">生成我的学习路径 <span>→</span></button></div><div class="file-name" id="fileName"></div></div>
+        <div class="suggestions"><span>试试这些</span><button data-goal="我想学会 Python 基础">学会 Python 基础</button><button data-goal="我想看懂这份产品经理教材">看懂一份产品教材</button><button data-goal="我想入门机器学习">入门机器学习</button></div>
+      </section>
+
+      <section class="content hidden" id="studyView">
+        <div class="study-layout"><div class="chat-panel"><div class="chat-head"><div class="ai-orb">✦</div><div><b>你的 AI 导师</b><span>正在陪你学习 · Python 基础</span></div><span class="status-dot"></span></div><div class="messages" id="messages"></div><div class="composer"><textarea id="answerInput" placeholder="用自己的话回答，或者直接说“我不太懂”"></textarea><button id="sendBtn">发送 <span>↗</span></button></div></div><aside class="path-panel"><div class="path-title"><div><span class="eyebrow">LEARNING PATH</span><h3>你的学习路径</h3></div><span class="progress" id="progress">1 / 5</span></div><div class="path-list" id="pathList"></div><div class="next-hint"><span>✦</span><div><b>AI 会根据你的回答调整</b><small>不用担心走错路，下一步随时会变化。</small></div></div></aside></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
