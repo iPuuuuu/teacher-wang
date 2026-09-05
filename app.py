@@ -9,6 +9,15 @@ ROOT = Path(__file__).parent
 DB_FILE = ROOT / 'learning-data.json'
 DEFAULT_STEPS = ['理解函数是什么', '参数与返回值', '条件与循环', '列表与字典', '做一个小项目']
 
+def load_env():
+    env = ROOT / '.env'
+    if env.exists():
+        for line in env.read_text(encoding='utf-8').splitlines():
+            line=line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                k,v=line.split('=',1); os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+load_env()
+
 def now(): return datetime.now(timezone.utc).isoformat()
 def read_db():
     try: return json.loads(DB_FILE.read_text(encoding='utf-8'))
